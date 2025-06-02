@@ -16,6 +16,7 @@ export default function RoutineDetails() {
   const [setErrorMsg, setSetErrorMsg] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState("");
   const [reps, setReps] = useState("");
+  const [deleteError, setDeleteError] = useState(null);
 
   // Fetch routine details
   useEffect(() => {
@@ -120,6 +121,29 @@ export default function RoutineDetails() {
     }
   }
 
+  async function handleDeleteRoutine() {
+    if (!window.confirm("Are you sure you want to delete this routine?")) {
+      return;
+    }
+    setDeleteError(null);
+    try {
+      const res = await fetch(
+        `https://fitnesstrac-kr.herokuapp.com/api/routines/${routineId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to delete routine");
+      navigate("/routines");
+    } catch (e) {
+      setDeleteError(e.message);
+    }
+  }
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
   if (!routine) return <p>Routine not found.</p>;
@@ -133,6 +157,16 @@ export default function RoutineDetails() {
       <p>
         <strong>Goal:</strong> {routine.goal}
       </p>
+
+      {token && (
+        <button
+          onClick={handleDeleteRoutine}
+          style={{ color: "red", marginBottom: "1em" }}
+        >
+          Delete Routine
+        </button>
+      )}
+      {deleteError && <p style={{ color: "red" }}>{deleteError}</p>}
 
       <h2>Sets</h2>
       {setsLoading ? (
